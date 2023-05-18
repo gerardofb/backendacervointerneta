@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Portal de administración de sitio web Acervo Audiovisual Interneta{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>Bienvenido</h1>
+    <div class="alert alert-info">
+        <p class="p-3">En este sitio podrá realizar tareas administrativas del sitio web Acervo Audiovisual Interneta tales como:</p>
+        <ul class="list-group-horizontal list-group">
+            <li class="list-group-item">
+                Administrar categorías de los videos del sitio web
+            </li>
+            <li class="list-group-item">
+                Administrar los videos del sitio web
+            </li>
+            <li class="list-group-item">
+                Ver y administrar listados de usuarios del sitio web
+            </li>
+            <li class="list-group-item">
+                Ver y administrar relatos del sitio web
+            </li>
+            <li class="list-group-item">
+                Ver y administrar eventos del sitio web
+            </li>
+            <li class="list-group-item">
+                Ver estadísticas de las secciones del sitio web
+            </li>
+        </ul>
+    </div>
+    <div class="row">
+        <p>Comience accediendo a la <a href="/administracion"><span class="badge bg-primary">Administración</span></a> (en caso de no tener sesión iniciada, deberá proporcionar sus credenciales).</p>
+        
+    </div>
+
+</div>
+{% endblock %}

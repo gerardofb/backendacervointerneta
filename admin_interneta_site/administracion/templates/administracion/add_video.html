@@ -1,0 +1,150 @@
+{% load crispy_forms_tags %}
+<div class="container">
+    <div class="errores-formulario"></div>
+    {% if form.non_field_errors %}
+    <div class="row">
+        {% for error in form.non_field_errors %}
+        <p class="text-danger">
+            {{error}}
+        </p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="mt-3">
+        <div class="mt-3">
+            <div class="shadow w-full bg-gray-100">
+                <div id="progressBar" class="bg-blue-500 text-xs leading-none py-1 text-center text-gray-800"
+                    style="width: 0%">
+                    0%
+                </div>
+            </div>
+            <div class="mt-2">
+                <h3 id="status"></h3>
+            </div>
+        </div>
+    </div>
+</div>
+<form method="post" id="form-update-video" action="{% url 'update-video' %}" enctype="multipart/form-data">
+    <div id="token_send">{% csrf_token %}</div>
+    <div class="row">
+        {{ form.media }}
+        {{ form | crispy }}
+    </div>
+    <div class="row">
+        <div class="col-md-10"></div>
+        <div class="col-md-2">
+            <button type="submit" id="submit-video" class="form-control bg-success text-white">Guardar</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="fake-row"></div>
+    </div>
+</form>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#submit-video').click(function (ev) {
+            console.log('enviando con ajax el video');
+            ev.preventDefault();
+            $('#submit-video').hide();
+            var formdata = new FormData();
+            var datos_img = $('#id_img_file')[0].files[0];
+            var datos_video = $('#id_aws_file')[0].files[0];
+            formdata.append('titulo', $('#id_titulo').val());
+            formdata.append('id_categoria', $('#id_id_categoria').val());
+            formdata.append('aws_file', datos_video);
+            formdata.append('img_file', datos_img);
+            formdata.append('num', $('input[name="num"]').val())
+            formdata.append('token', $('#token_send').text())
+            var fechacarga = new Date()
+            $.ajax({
+                url: "{% url 'update-file-video' %}",
+                type: 'POST',
+                data: formdata,
+                cache: false,
+                contentType: false,
+                processData: false,
+                xhr: function () {
+                    myXhr = $.ajaxSettings.xhr();
+                    if (myXhr.upload) {
+                        myXhr.upload.addEventListener('progress', progressHandler, false);
+                    }
+                    return myXhr;
+                }
+            }).done(function (data) {
+                if (data.success) {
+                    var fechafincarga = new Date();
+                    var faltante = new Date(fechafincarga - fechacarga);
+                    localStorage.removeItem('fecha-carga');
+                    localStorage.setItem('fecha-carga', "" + faltante.getTime())
+                    console.log('datos de respuesta de precarga de archivos de video ', data);
+                    $("#status").get(0).innerHTML = "Por favor no cierre esta ventana, cargando video a contenedor en aws...";
+                    $("#progressBar").get(0).style.width = `${0}%`;
+                    $("#progressBar").get(0).style.background = 'lightgray';
+                    var inicialfecha = parseInt(faltante.getTime());
+                    var transcurrido = parseInt(inicialfecha);
+                    var oneMinute = 60 * 1000;
+                    var oneSecond = 1000;
+                    var lapso = setInterval(function () {
+                        transcurrido -= 1000;
+                        localStorage.setItem('fecha-carga', "" + transcurrido);
+                        var percent = Math.ceil((inicialfecha - transcurrido) / inicialfecha * 100);
+                        $("#progressBar").get(0).style.width = `${percent}%`;
+                        $("#progressBar").get(0).innerText = `${percent}%`;
+                        $("#status").get(0).innerHTML = percent + "% video a contenedor en aws... por favor no cierre esta ventana";
+                        if (percent == 100 || transcurrido <= 0) clearInterval(lapso)
+                    }, 1000);
+                    formdata.append('file_url', data.files_urls[0]);
+                    formdata.append('file_img_url', data.files_urls[1]);
+                    formdata.append('token', $('#token_send').text());
+                    formdata.set('num',data.numero);
+                    $.ajax({
+                        url: "{% url 'update-video' %}",
+                        type: 'POST',
+                        data: formdata,
+                        cache: false,
+                        contentType: false,
+                        processData: false
+                    }).done(function (datos) {
+                        var navegacion = localStorage.getItem('navegacion_upload_fin');
+                        localStorage.removeItem('navegacion_upload_fin');
+                        window.location = '/administracion/videos/' + (navegacion == null ? '' : navegacion);
+                        $('#submit-video').show();
+                    });
+                }
+                else {
+                    $('#submit-video').show();
+                    localStorage.removeItem('navegacion_upload_fin');
+                    if (data.error == 'redirect-login') {
+                        window.location = '/cerrarsesion'
+                    }
+                    else if (data.error == 'campo-id') {
+                        console.log('falta el campo identificatorio # ha ocurrido un error inesperado')
+                    }
+                    else if (data.error == 'error-file') {
+                        console.log('error leyendo el archivo');
+                    }
+                    else if (data.error == 'formulario-invalido' && data.formerrors) {
+                        console.log(data.formerrors);
+                        $('.errores-formulario').append('<div class="row"></div>');
+                        for(llave in data.formerrors){
+                            $('.errores-formulario').find('.row').append('<p class=" text-danger">'+data.formerrors[llave][0]+'</p>');
+                        }
+                    }
+                }
+
+            }).fail(function (error) {
+                localStorage.removeItem('navegacion_upload_fin');
+                $('#submit-video').show();
+            })
+        });
+
+    })
+    function progressHandler(event) {
+        var percent = Math.round((event.loaded / event.total) * 100);
+        $("#progressBar").get(0).style.width = `${percent}%`;
+        $("#progressBar").get(0).style.background = 'lightgray';
+        $("#progressBar").get(0).innerText = `${percent}%`;
+        $("#status").get(0).innerHTML = percent + "% de archivos subidos... por favor no cierre esta ventana";
+    }
+</script>
+</div>

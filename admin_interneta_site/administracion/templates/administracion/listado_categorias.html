@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    {% include 'default_nav_back.html' %}
+    <div class="row">
+        <div class="col-md-10">
+            <h2>Categorías</h2>
+        </div>
+        <div class="col-md-2">
+            <button type="button" class="form-control bg-primary text-white"><a href="{% url 'add-categoria' num=0 %}"
+                    class="text-white"><i class="fa-solid fa-plus fa-2xl"></i></a></button>
+        </div>
+    </div>
+    <div class="row">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">
+                        #
+                    </th>
+                    <th scope="col">
+                        Título
+                    </th>
+                    <th scope="col">
+                        Descripcion
+                    </th>
+                    <th>
+                        Acciones
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for categoria in object_list %}
+                <tr>
+                    <td scope="row">{{ categoria.id }}</td>
+                    <td>{{ categoria.titulo }}</td>
+                    <td>
+                        {% if categoria.descripcion|length > 149 %}
+                        {{ categoria.descripcion|slice:"0:150" }}...
+                        {% else %}
+                        {{ categoria.descripcion }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'add-categoria' num=categoria.id %}">Editar</a>&nbsp;
+                        <span class="template-delete" data-categoria="{{ categoria.id }}">
+
+                        </span></td>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- Comienza paginador -->
+    <div class="container d-flex align-items-center justify-content-center">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">&laquo; Primera</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <a class="page-link btn disabled" href="#">&laquo; Primera</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link btn disabled" href="#">Anterior</a>
+            </li>
+            {% endif %}
+            <li class="page-item">
+                <a name="pagina_actual" class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</a>
+            </li>
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última &raquo;</a>
+            </li>
+            {% else %}
+            <li class="page-item"><a class="page-link btn disabled" href="#">Siguiente</a></li>
+            <li class="page-item">
+                <a class="page-link btn disabled" href="#">Última &raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    <!-- Termina paginador -->
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.template-delete').each(function (i, el) {
+            var id = $(el).data('categoria')
+
+            $.get("/administracion/deletecategoria/" + id, function (data) {
+                var elemento = $('.template-delete[data-categoria="' + id + '"]');
+                elemento.html(data);
+            })
+        })
+    })
+</script>
+{% endblock %}

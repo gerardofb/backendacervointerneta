@@ -1,0 +1,75 @@
+version: '3'
+volumes:
+  admin_interneta_site:
+services:
+  admin_interneta_site:
+    build: 
+      context: ./admin_interneta_site
+    expose:
+      - 8000
+    networks:
+      - acervo-docker-network
+    volumes:
+      - ./admin_interneta_site:/admin_interneta_site
+      - static_volume:/admin_interneta_site/staticfiles
+    command: bash -c "python manage.py collectstatic --noinput && gunicorn admin_interneta_site.wsgi:application --bind 0.0.0.0:8000 --workers=4 --threads 4 --timeout 240 --error-logfile /var/log/gunicorn/dev.log"
+    # "python manage.py collectstatic --noinput --clear && gunicorn -c dev.py"
+  celery:
+    build:
+      context: ./admin_interneta_site
+    command: celery -A admin_interneta_site worker -l info
+    volumes:
+      - ./admin_interneta_site:/admin_interneta_site
+    depends_on:
+      - admin_interneta_site
+      - rabbitmq
+    networks:
+      - acervo-docker-network
+  rabbitmq:
+    image: rabbitmq:3.7-management-alpine
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "2"
+        max-size: "50m"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - 8080:15672
+      - 5672:5672
+      - 5671:5671
+    hostname: rabbit-acervo
+    volumes:
+      - admin_interneta_site:/var/lib/rabbitmq
+    networks:
+      - acervo-docker-network
+  opensearch:
+    image: opensearchproject/opensearch:latest
+    container_name: opensearch-node1
+    volumes:
+      - admin_interneta_site:/usr/share/opensearch/data # Creates volume called opensearch-data1 and mounts it to the container
+    ports:
+      - 9200:9200 # REST API
+      - 9600:9600 # Performance Analyzer
+    hostname: opensearch-nodo
+    networks:
+      - acervo-docker-network
+    environment:
+      discovery.type: single-node
+  nginx:
+    build: ./nginx
+    volumes:
+     - static_volume:/admin_interneta_site/staticfiles
+    ports:
+      - 5000:80
+    depends_on:
+      - admin_interneta_site
+    networks:
+      - acervo-docker-network
+networks:
+  acervo-docker-network:
+volumes:
+  admin_interneta_site:
+  static_volume:
+

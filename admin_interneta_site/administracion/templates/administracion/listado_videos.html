@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% load videocreditosexists %}
+{% block content %}
+{% load static %}
+<div class="container">
+    {% include 'default_nav_back.html' %}
+    <div class="row my-4">
+        <form class="form-inline my-2 my-lg-0" method="GET" action="">
+            <input class="form-control mr-sm-2" type="text" name="q" placeholder="Search" value="{{ request.GET.q }}">
+        </form>
+    </div>
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Videos</h2>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-default" onclick="window.location.reload()" data-toggle="tooltip"
+                title="recargar para verificar progreso de subida de archivos al contenedor en aws"><i
+                    class="fa-solid fa-rotate-right fa-xl"></i></button>
+        </div>
+        <div class="col-md-2">
+            <button type="button" class="form-control bg-primary text-white"><a href="{% url 'new-video' num=0 %}"
+                    class="text-white"><i class="fa-solid fa-plus fa-2xl"></i></a></button>
+        </div>
+    </div>
+    <div class="row">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">
+                        #
+                    </th>
+                    <th scope="col">
+                        Título
+                    </th>
+                    <th>
+                        Categoria
+                    </th>
+                    <th scope="col">
+                        Codigo
+                    </th>
+                    <th scope="col">
+                        Año producción
+                    </th>
+                    <th scope="col">
+                        Dirección
+                    </th>
+                    <th>
+                        Vínculo
+                    </th>
+                    <th>
+                        Acciones
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for video in object_list %}
+                <tr>
+                    <td scope="row">{{ video.id }}</td>
+                    <td>{{ video.titulo }}</td>
+                    <td>{{ video.id_categoria.titulo }}</td>
+                    {% if video|check_videocreditos_exists:video %}
+                    {% for credito in video.creditos_por_video.all %}
+
+                    <td>{{ credito.codigo_identificacion }}</td>
+                    <td>{{ credito.anio_produccion }}</td>
+                    <td>{{ credito.direccion_realizacion }}</td>
+
+                    {% endfor %}
+                    {% else %}
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    {% endif %}
+                    <td>
+                        {% if video.contenedor_aws == 'Ninguno' %}
+                        <img src="{% static 'img/loader_video.gif' %}" height="30" />&nbsp;Cargando {{video.titulo}}...
+                        <span id="tiempo_restante"></span>
+                        {% else %}
+                        <a href="{{video.contenedor_aws}}" target="_blank">
+                            {{ video.contenedor_aws}}
+                        </a>
+                        {% endif %}
+
+                    </td>
+                    <td><a href="{% url 'new-video' num=video.id %}" class="vinculo_edicion_vid">Editar</a>
+                        &nbsp;<span class="template-delete" data-video="{{ video.id }}">
+                        </span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- Comienza paginador -->
+    <div class="container d-flex align-items-center justify-content-center">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">&laquo; Primera</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <a class="page-link btn disabled" href="#">&laquo; Primera</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link btn disabled" href="#">Anterior</a>
+            </li>
+            {% endif %}
+            <li class="page-item">
+                <a name="pagina_actual" class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</a>
+            </li>
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última &raquo;</a>
+            </li>
+            {% else %}
+            <li class="page-item"><a class="page-link btn disabled" href="#">Siguiente</a></li>
+            <li class="page-item">
+                <a class="page-link btn disabled" href="#">Última &raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    <!-- Termina paginador -->
+</div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.vinculo_edicion_vid').click(function(ev){
+            ev.preventDefault();
+            var query = location.search;
+            localStorage.setItem('navegacion_upload_fin',query);
+            navegacion = $(this).attr('href');
+            window.location=navegacion;
+        })
+        if (localStorage.getItem('fecha-carga')) {
+            var transcurrido = parseInt(localStorage.getItem('fecha-carga'));
+            var oneMinute = 60 * 1000;
+            var oneSecond = 1000;
+            
+            //console.log('el tiempo transcurrido ', transcurrido)
+            // var lapso = setInterval(function () {
+            //     // var minutes = Math.ceil(transcurrido / oneMinute);
+            //     // var seconds = Math.ceil(transcurrido / oneSecond);
+            //     // var salida = { minutos: (minutes >= 0) ? minutes < 10 ? '0' + minutes : minutes : '00', segundos: (seconds >= 0) ? seconds < 10 ? '0' + seconds : seconds : '00' };
+            //     //$('span#tiempo_restante').html('Faltan aproximadamente '+salida.minutos+' minutos con '+salida.segundos+' segundos');
+            //     //console.log(salida);
+            //     transcurrido -= 1000;
+            //     localStorage.setItem('fecha-carga',""+transcurrido);
+            // }, 1000);
+            // if (transcurrido <= 0) {
+            //     clearInterval(lapso);
+            //     localStorage.removeItem('fecha-carga')
+            // }
+            localStorage.removeItem('fecha-carga')
+        }
+        $('.template-delete').each(function (i, el) {
+            var id_video = $(el).data('video')
+
+            $.get("/administracion/deletevideo/" + id_video, function (data) {
+                var elemento = $('.template-delete[data-video="' + id_video + '"]');
+                elemento.html(data);
+            })
+        })
+    })
+</script>
+{% endblock %}

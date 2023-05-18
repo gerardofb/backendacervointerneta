@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Tableros administrativos{% endblock %}
+{% block content %}
+<div class="container">
+    <h1 class="text-center">Tablero de administración</h1>
+    <div class="alert alert-info">
+        <p>¡Bienvenido! Elija una de las opciones siguientes para administrar el sitio web:</p>
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card p-4 item-admin">
+                <div class="card-title">
+                    <p><i class="fa-solid fa-folder-plus fa-2xl"></i></i> Categorías</p>
+                </div>
+                <div class="card-body">
+                    <p><a href="{% url 'list-categorias' %}"><span class="badge bg-success">Administrar</span></a> categorías de los videos del Acervo Audiovisual Inerneta.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-4 item-admin">
+                <div class="card-title">
+                    <p><i class="fa-solid fa-video fa-2xl"></i></i> Videos</p>
+                </div>
+                <div class="card-body">
+                    <p><a href="{% url 'list-videos' %}"><span class="badge bg-success">Administrar</span></a> videos del Acervo Audiovisual Inerneta.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-4 item-admin">
+                <div class="card-title">
+                    <p><i class="fa-solid fa-book fa-2xl"></i></i> Relatos de los usuarios</p>
+                </div>
+                <div class="card-body">
+                    <p><span class="badge bg-success">Administrar</span> relatos del Acervo Audiovisual Inerneta.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-4 item-admin">
+                <div class="card-title">
+                    <p><i class="fa-solid fa-calendar-days fa-2xl"></i></i> Eventos de los usuarios</p>
+                </div>
+                <div class="card-body">
+                    <p><span class="badge bg-success">Administrar</span> eventos de los usuarios del Acervo Audiovisual Inerneta.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

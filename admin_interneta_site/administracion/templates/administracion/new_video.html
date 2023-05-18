@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Agregar nuevo video{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        {% include 'default_nav_back.html' %}
+    </div>
+    <ul class="nav nav-tabs" id="tabNuevoVideo" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Video</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="creditos-tab" data-bs-toggle="tab" data-bs-target="#creditos" type="button" role="tab" aria-controls="creditos" aria-selected="false">Créditos</button>
+        </li>
+      </ul>
+      <div class="tab-content" id="tabNuevoVideoContent">
+        <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+            <div id="contenedor-form-video"></div>
+        </div>
+        <div class="tab-pane fade" id="creditos" role="tabpanel" aria-labelledby="creditos-tab">
+          <div id="contenedor-form-creditos-video"></div>
+        </div>
+      </div>
+    <script type="text/javascript">
+      var num = {{num}}
+    </script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+          
+            $.get("{% url 'add-video' num=num %}", function(data){
+                $('#contenedor-form-video').append(data);
+                $('#contenedor-form-video form').append('<input type="hidden" name="num" value="'+num+'" />')
+                
+            })
+            $.get("{% url 'add-creditos-video' num=num %}", function(data){
+              $('#contenedor-form-creditos-video').append(data);
+              $('#contenedor-form-creditos-video form').append('<input type="hidden" name="num" value="'+num+'" />')
+            });
+            if(num==0){
+              $('#creditos').hide();
+            }
+
+        })
+    </script>
+</div>
+{% endblock %}

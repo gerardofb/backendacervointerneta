@@ -1,0 +1,36 @@
+{% load crispy_forms_tags %}
+<div class="container">
+    {% if form.non_field_errors %}
+    <div class="row">
+        {% for error in form.non_field_errors %}
+        <p class="text-danger">
+            {{error}}
+        </p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% if form.errors %}
+    <div class="row">
+        {% for error in form.erors %}
+        <p class="text-danger">
+            {{error}}
+        </p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <form method="post" action="{% url 'update-creditos-video' %}">
+        {% csrf_token %}
+        <div class="row">
+            {{ form | crispy }}
+        </div>
+        <div class="row">
+            <div class="col-md-10"></div>
+            <div class="col-md-2">
+                <button type="submit" class="form-control bg-success text-white">Guardar</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="fake-row"></div>
+        </div>     
+    </form>
+</div>

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        {% include 'default_nav_back.html' %}
+    </div>
+    {% if form.errors %} 
+    {% for e in form.errors %}
+    {{e}}
+    {% endfor %}
+    {% endif %}
+    <form method="post" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+            {{ form | crispy }}
+        </div>
+        <div class="row">
+            <div class="col-md-10"></div>
+            <div class="col-md-2">
+                <button type="submit" id="submit-categoria" class="form-control bg-success text-white">Guardar</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="fake-row"></div>
+        </div>
+    </form>
+
+</div>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('#submit-categoria').click(function(ev){
+            console.log('enviando con ajax la categoria')
+            ev.preventDefault();
+            var formdata = new FormData();
+            var numeros = window.location.pathname.split('/')
+            var id_cat = numeros[numeros.length-1]
+            var datos_img = $('#id_img_file')[0].files[0];
+            formdata.append('titulo',$('#id_titulo').val());
+            formdata.append('descripcion',$('#id_descripcion').val());
+            formdata.append('img_file',datos_img);
+            formdata.append('num',id_cat)
+            formdata.append('no_videos',$('#id_no_videos').val())
+            $.ajax({
+                url:window.location.pathname,
+                type:'POST',
+                data:formdata,
+                cache:false,
+                contentType:false,
+                processData:false
+            }).done(function(data){
+                if(data.success){
+                    window.location='/administracion/categorias/';
+                }
+                else{
+                    if(data.error == 'redirect-login'){
+                        window.location='/cerrarsesion'
+                    }
+                    else if(data.error == 'campo-id'){
+                        console.log('falta el campo identificatorio # ha ocurrido un error inesperado')
+                    }
+                    else if(data.error == 'error-file'){
+                        console.log('error leyendo el archivo');
+                    }
+                    else if(data.error == 'formulario-invalido' && data.formerrors){
+                        console.log('los errores son ',data.formerrors);
+                    }
+                }
+            })
+        })
+    })
+</script>
+{% endblock %}

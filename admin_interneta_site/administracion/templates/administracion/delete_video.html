@@ -1,0 +1,23 @@
+{% if video_actual %}
+{% csrf_token %}
+<a href="#" class="borrado_listado_elem" data-videoid="{{ video_actual.id }}">
+    {% if video_actual.activo %} 
+    Borrar
+    {% else %} 
+    Restablecer
+    {% endif %}
+</a>
+<script type="text/javascript">
+     $('.borrado_listado_elem').click(function (ev) {
+            ev.preventDefault();
+            var id_envio = $(this).data('videoid');
+            var elemento = $('.template-delete[data-video="' + id_envio + '"]');
+            var token = $(elemento).find('input[name="csrfmiddlewaretoken"]').val();
+            $.post("/administracion/deletevideo/" + id_envio,{csrfmiddlewaretoken:token}, function (data) {
+                
+                $(elemento).html(data);
+            })
+        })
+</script>
+
+{% endif %}
